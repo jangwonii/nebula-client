@@ -26,23 +26,4 @@ def split_sentences_ko(text: str):
         fixed += re.split(r"(?<=다\.)\s+(?=[가-힣A-Z0-9])", s)
     return [s.strip() for s in fixed if len(s.strip()) >= 8]
 
-# === 3) KeyBERT 분석 (최상위 1개만) ===
-def keybert_analyze(text: str):
-    embed = SentenceTransformer("jhgan/ko-sroberta-multitask")
-    kb = KeyBERT(model=embed)
-
-
-    # 중요 문장 1개
-    sents = split_sentences_ko(text)
-    if len(sents) == 0:
-        key_sents = []
-    else:
-        key_sents = kb.extract_keywords(
-            sents,
-            keyphrase_ngram_range=(5, 10),
-            use_mmr=False,
-            top_n=1
-        )
-
-    return key_sents
 
