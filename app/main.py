@@ -10,8 +10,10 @@ from app.schemas.folder import (
     FolderSnapshotResponse,
     SnapshotPageInfo,
 )
+from app.schemas.keyword import KeywordExtractionRequest, KeywordExtractionResponse
 from app.services.folder_inspection import DirectoryInspectionError, inspect_directory
 from app.services.folder_snapshot import snapshot_directory
+from app.services.text_analysis.keyword_extractor import keybert_analyze
 
 
 load_dotenv()
@@ -65,6 +67,22 @@ def snapshot_folder(payload: FolderSnapshotRequest) -> FolderSnapshotResponse:
             for page in result.pages
         ],
     )
+
+
+@app.post("/text/keywords", response_model=KeywordExtractionResponse)
+def extract_keywords(payload: KeywordExtractionRequest) -> KeywordExtractionResponse:
+    """텍스트에서 키워드와 중요 문장을 추출합니다."""
+    try:
+        keywords, key_sentences = keybert_analyze(payload.text)
+        return KeywordExtractionResponse(
+             keywords=keywords,
+             key_sentences=key_sentences
+         )
+    except Exception as exc:
+         raise HTTPException(
+             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+             detail=f"키워드 추출 중 오류가 발생했습니다: {str(exc)}"
+         ) from exc
 
 
 if __name__ == "__main__":
